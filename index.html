@@ -276,6 +276,122 @@
             color: rgba(232, 232, 240, 0.8);
         }
 
+        .control-panel {
+            margin-bottom: 14px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .panel-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .panel-input,
+        .panel-select,
+        .panel-btn {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 12px;
+            padding: 7px 10px;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .panel-input {
+            min-width: 170px;
+        }
+
+        .panel-select {
+            min-width: 96px;
+        }
+
+        .panel-btn {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .panel-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .panel-btn.active {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .panel-tag {
+            font-size: 11px;
+            color: var(--text-secondary);
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+        }
+
+        .offline-banner {
+            display: none;
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(220, 38, 38, 0.18);
+            border: 1px solid rgba(220, 38, 38, 0.35);
+            color: #fecaca;
+        }
+
+        .offline-banner.show {
+            display: block;
+        }
+
+        .changelog-banner {
+            display: none;
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            background: rgba(37, 99, 235, 0.18);
+            border: 1px solid rgba(37, 99, 235, 0.35);
+            color: #bfdbfe;
+        }
+
+        .changelog-banner.show {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .stats-bar {
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+        }
+
+        .stats-chip {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .stats-chip strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
         /* Schedule grid */
         .schedule {
             display: flex;
@@ -380,6 +496,20 @@
             transition: background 0.2s ease;
         }
 
+        .class-row.status-now {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .class-row.status-soon {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.22);
+        }
+
+        .class-row.status-past {
+            opacity: 0.75;
+        }
+
         .class-row:hover {
             background: rgba(255, 255, 255, 0.02);
         }
@@ -446,6 +576,30 @@
             flex-wrap: wrap;
         }
 
+        .status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 2px 7px;
+            border-radius: 5px;
+        }
+
+        .status-now-badge {
+            color: #86efac;
+            background: rgba(34, 197, 94, 0.15);
+        }
+
+        .status-soon-badge {
+            color: #93c5fd;
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .status-past-badge {
+            color: #cbd5e1;
+            background: rgba(148, 163, 184, 0.16);
+        }
+
         .class-teacher {
             font-size: 12px;
             color: var(--text-secondary);
@@ -486,6 +640,24 @@
         .class-room::before {
             content: '📍';
             font-size: 11px;
+        }
+
+        .share-btn {
+            margin-left: auto;
+            font-size: 11px;
+            color: #dbeafe;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(30, 41, 59, 0.45);
+            border-radius: 6px;
+            padding: 3px 8px;
+            cursor: pointer;
+        }
+
+        .class-name mark {
+            background: rgba(250, 204, 21, 0.35);
+            color: #fef9c3;
+            border-radius: 4px;
+            padding: 0 2px;
         }
 
         /* Empty slot */
@@ -680,6 +852,20 @@
             .time-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            .panel-input,
+            .panel-select {
+                min-width: 120px;
+                flex: 1;
+            }
+
+            .panel-btn {
+                flex: 1;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Transition for week switch */
@@ -775,9 +961,45 @@
             <button class="week-btn" data-week="2" type="button">2 нед. (чётная)</button>
         </div>
 
+        <div class="offline-banner" id="offlineBanner">⚠ Нет сети. Показано кэшированное расписание.</div>
+
+        <div class="changelog-banner" id="changelogBanner">
+            <span id="changelogText">Есть обновления в расписании</span>
+            <button class="panel-btn" id="changelogCloseBtn" type="button">Скрыть</button>
+        </div>
+
+        <div class="control-panel">
+            <div class="panel-row">
+                <button class="panel-btn" id="todayModeBtn" type="button">Режим Сегодня</button>
+                <input class="panel-input" id="searchInput" type="search" placeholder="Поиск: предмет/препод/аудитория">
+                <select class="panel-select" id="typeFilter">
+                    <option value="all">Все типы</option>
+                    <option value="ЛЕК">Лекции</option>
+                    <option value="СЕМ">Семинары</option>
+                    <option value="ЛАБ">Лабы</option>
+                    <option value="none">Без типа</option>
+                </select>
+                <button class="panel-btn" id="exportTodayBtn" type="button">ICS: Сегодня</button>
+                <button class="panel-btn" id="exportWeekBtn" type="button">ICS: Неделя</button>
+            </div>
+            <div class="panel-row">
+                <span class="panel-tag">Напоминание до пары:</span>
+                <select class="panel-select" id="notifLeadTime">
+                    <option value="5">5 мин</option>
+                    <option value="10">10 мин</option>
+                    <option value="15" selected>15 мин</option>
+                    <option value="30">30 мин</option>
+                </select>
+                <button class="panel-btn" id="shareTodayBtn" type="button">Поделиться днем</button>
+                <button class="panel-btn" id="resetStateBtn" type="button">Сбросить настройки</button>
+            </div>
+        </div>
+
         <div class="time-info" id="currentInfo"></div>
 
         <div class="next-class" id="nextClassCard"></div>
+
+        <div class="stats-bar" id="statsBar"></div>
 
         <div class="schedule" id="schedule"></div>
 
@@ -821,6 +1043,13 @@
         const DAY_LABELS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'];
         const STORAGE_WEEK_KEY = 'schedule:selectedWeek';
         const STORAGE_COLLAPSED_DAYS_KEY = 'schedule:collapsedDays';
+        const STORAGE_TODAY_MODE_KEY = 'schedule:todayMode';
+        const STORAGE_TYPE_FILTER_KEY = 'schedule:typeFilter';
+        const STORAGE_SEARCH_QUERY_KEY = 'schedule:searchQuery';
+        const STORAGE_NOTIF_LEAD_TIME_KEY = 'schedule:notifLeadTime';
+        const STORAGE_SCHEDULE_HASH_KEY = 'schedule:dataHash';
+        const STORAGE_CHANGELOG_DISMISSED_KEY = 'schedule:changelogDismissed';
+        const APP_SCHEDULE_VERSION = '2026-spring-v2';
 
         const SUBJECT_COLORS = {
             'Разработка мобильных приложений': '#7c3aed',
@@ -940,8 +1169,71 @@
             localStorage.setItem(STORAGE_COLLAPSED_DAYS_KEY, JSON.stringify(Array.from(collapsedDays)));
         }
 
+        function getSavedBool(key, defaultValue = false) {
+            const value = localStorage.getItem(key);
+            if (value === null) return defaultValue;
+            return value === '1';
+        }
+
+        function getSavedString(key, defaultValue = '') {
+            const value = localStorage.getItem(key);
+            return value === null ? defaultValue : value;
+        }
+
+        function getSavedInt(key, defaultValue) {
+            const value = Number.parseInt(localStorage.getItem(key), 10);
+            return Number.isNaN(value) ? defaultValue : value;
+        }
+
+        function stringHash(input) {
+            let hash = 5381;
+            for (let i = 0; i < input.length; i += 1) {
+                hash = ((hash << 5) + hash) + input.charCodeAt(i);
+                hash |= 0;
+            }
+            return String(hash >>> 0);
+        }
+
+        function computeScheduleHash() {
+            return `${APP_SCHEDULE_VERSION}:${stringHash(JSON.stringify(scheduleData))}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function escapeRegExp(value) {
+            return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function highlightMatch(text, query) {
+            if (!query) return escapeHtml(text);
+            const safe = escapeRegExp(query.trim());
+            if (!safe) return escapeHtml(text);
+            const re = new RegExp(`(${safe})`, 'ig');
+            return escapeHtml(text).replace(re, '<mark>$1</mark>');
+        }
+
+        function savePanelState() {
+            localStorage.setItem(STORAGE_TODAY_MODE_KEY, todayModeEnabled ? '1' : '0');
+            localStorage.setItem(STORAGE_TYPE_FILTER_KEY, typeFilterValue);
+            localStorage.setItem(STORAGE_SEARCH_QUERY_KEY, searchQueryValue);
+            localStorage.setItem(STORAGE_NOTIF_LEAD_TIME_KEY, String(notifLeadTimeMins));
+        }
+
         let currentWeek = getSavedWeek() || detectCurrentWeek();
         const collapsedDays = getSavedCollapsedDays();
+        let todayModeEnabled = getSavedBool(STORAGE_TODAY_MODE_KEY, false);
+        let typeFilterValue = getSavedString(STORAGE_TYPE_FILTER_KEY, 'all');
+        let searchQueryValue = getSavedString(STORAGE_SEARCH_QUERY_KEY, '').trim();
+        let notifLeadTimeMins = getSavedInt(STORAGE_NOTIF_LEAD_TIME_KEY, 15);
+        if (![5, 10, 15, 30].includes(notifLeadTimeMins)) notifLeadTimeMins = 15;
+        const scheduleHash = computeScheduleHash();
 
         function getTypeClass(type) {
             if (!type) return '';
@@ -957,19 +1249,63 @@
             return d; // 1-5 are weekdays
         }
 
+        function classMatchesFilters(c, query, typeFilter) {
+            if (typeFilter === 'none' && c.type) return false;
+            if (typeFilter !== 'all' && typeFilter !== 'none' && (c.type || '').toUpperCase() !== typeFilter) return false;
+            if (!query) return true;
+            const q = query.toLowerCase();
+            return [c.name, c.teacher, c.room, c.type].some(v => (v || '').toLowerCase().includes(q));
+        }
+
+        function getDayStatus(dayNum, pairNum, week, now) {
+            if (week !== detectCurrentWeek() || dayNum !== now.getDay()) {
+                return { rowClass: '', badgeClass: '', badgeText: '' };
+            }
+            const slot = TIME_SLOTS[pairNum - 1];
+            if (!slot) return { rowClass: '', badgeClass: '', badgeText: '' };
+            const [sh, sm] = slot.start.split(':').map(Number);
+            const [eh, em] = slot.end.split(':').map(Number);
+            const mins = now.getHours() * 60 + now.getMinutes();
+            const start = sh * 60 + sm;
+            const end = eh * 60 + em;
+
+            if (mins >= start && mins <= end) {
+                return { rowClass: ' status-now', badgeClass: ' status-now-badge', badgeText: 'Идет' };
+            }
+            if (start > mins && (start - mins) <= 60) {
+                return { rowClass: ' status-soon', badgeClass: ' status-soon-badge', badgeText: 'Скоро' };
+            }
+            if (end < mins) {
+                return { rowClass: ' status-past', badgeClass: ' status-past-badge', badgeText: 'Прошла' };
+            }
+            return { rowClass: '', badgeClass: '', badgeText: '' };
+        }
+
+        function getVisibleDaysForWeek(week) {
+            if (!todayModeEnabled) return [1, 2, 3, 4, 5];
+            if (week !== detectCurrentWeek()) return [1, 2, 3, 4, 5];
+            const day = getTodayDayIndex();
+            if (day >= 1 && day <= 5) return [day];
+            return [1, 2, 3, 4, 5];
+        }
+
         function renderSchedule(week) {
             const el = document.getElementById('schedule');
+            const now = new Date();
             const today = getTodayDayIndex();
             const isCurrentWeek = (week === detectCurrentWeek());
+            const visibleDays = getVisibleDaysForWeek(week);
             let html = '';
 
-            DAYS.forEach((dayName, idx) => {
-                const dayNum = idx + 1; // 1=Mon
+            visibleDays.forEach((dayNum) => {
+                const idx = dayNum - 1;
+                const dayName = DAYS[idx];
                 const isToday = isCurrentWeek && dayNum === today;
                 const data = scheduleData[week][dayName];
                 const isPractice = data === 'practice';
                 const classes = isPractice ? [] : (data || []);
-                const classCount = isPractice ? 0 : classes.length;
+                const filteredClasses = classes.filter(c => classMatchesFilters(c, searchQueryValue, typeFilterValue));
+                const classCount = isPractice ? 0 : filteredClasses.length;
 
                 const isCollapsed = collapsedDays.has(dayNum);
 
@@ -993,29 +1329,25 @@
                 html += `<div class="day-body" id="day-body-${dayNum}">`;
 
                 if (isPractice) {
-                    html += `<div class="practice-banner">
-                        <span class="icon">🏗️</span>
-                        <span>Практика (весь день)</span>
-                    </div>`;
+                    html += `<div class="practice-banner"><span class="icon">🏗️</span><span>Практика (весь день)</span></div>`;
                 } else if (classCount === 0) {
-                    html += `<div class="empty-note">Пар нет — отдыхай 😌</div>`;
+                    html += `<div class="empty-note">По текущим фильтрам пар нет</div>`;
                 } else {
-                    classes.forEach(c => {
+                    filteredClasses.forEach(c => {
                         const slot = TIME_SLOTS[c.pair - 1];
                         const color = getColor(c.name);
-                        html += `<div class="class-row">`;
-                        html += `<div class="class-time">
-                            <span class="pair-num">${c.pair}</span>
-                            <span class="time-start">${slot.start}</span>
-                            <span class="time-end">${slot.end}</span>
-                        </div>`;
+                        const status = getDayStatus(dayNum, c.pair, week, now);
+                        html += `<div class="class-row${status.rowClass}" data-day="${dayNum}" data-pair="${c.pair}" data-name="${escapeHtml(c.name)}">`;
+                        html += `<div class="class-time"><span class="pair-num">${c.pair}</span><span class="time-start">${slot.start}</span><span class="time-end">${slot.end}</span></div>`;
                         html += `<div class="class-divider" style="background:${color}"></div>`;
                         html += `<div class="class-info">`;
-                        html += `<div class="class-name">${c.name}</div>`;
+                        html += `<div class="class-name">${highlightMatch(c.name, searchQueryValue)}</div>`;
                         html += `<div class="class-meta">`;
-                        if (c.teacher) html += `<span class="class-teacher">${c.teacher}</span>`;
+                        if (c.teacher) html += `<span class="class-teacher">${highlightMatch(c.teacher, searchQueryValue)}</span>`;
                         if (c.type) html += `<span class="class-type ${getTypeClass(c.type)}">${c.type}</span>`;
-                        if (c.room) html += `<span class="class-room">${c.room}</span>`;
+                        if (c.room) html += `<span class="class-room">${highlightMatch(c.room, searchQueryValue)}</span>`;
+                        if (status.badgeText) html += `<span class="status-badge${status.badgeClass}">${status.badgeText}</span>`;
+                        html += `<button class="share-btn" type="button" data-share="class" data-day="${dayNum}" data-pair="${c.pair}">Поделиться</button>`;
                         html += `</div></div></div>`;
                     });
                 }
@@ -1023,14 +1355,17 @@
                 html += `</div></div>`;
             });
 
+            if (!html) {
+                html = `<div class="day-card"><div class="empty-note">Нечего показывать по выбранным настройкам.</div></div>`;
+            }
+
             el.innerHTML = html;
 
-            // Auto-scroll to today (only on current week)
             if (isCurrentWeek && today >= 1 && today <= 5) {
                 setTimeout(() => {
                     const todayCard = document.getElementById(`day-${today}`);
                     if (todayCard) todayCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300);
+                }, 250);
             }
         }
 
@@ -1049,6 +1384,8 @@
 
             setTimeout(() => {
                 renderSchedule(week);
+                renderStats();
+                renderNextClassCard();
                 el.classList.remove('fade-out');
                 el.classList.add('fade-in');
             }, 200);
@@ -1181,6 +1518,217 @@
             `;
         }
 
+        function getClassesForDay(week, dayNum) {
+            const dayName = DAYS[dayNum - 1];
+            const data = scheduleData[week][dayName];
+            if (!data || data === 'practice') return [];
+            return data;
+        }
+
+        function renderStats() {
+            const el = document.getElementById('statsBar');
+            const visibleDays = getVisibleDaysForWeek(currentWeek);
+            let total = 0;
+            let labs = 0;
+            let lectures = 0;
+            let maxDayCount = 0;
+            let maxDayLabel = '-';
+
+            visibleDays.forEach(dayNum => {
+                const classes = getClassesForDay(currentWeek, dayNum)
+                    .filter(c => classMatchesFilters(c, searchQueryValue, typeFilterValue));
+                const count = classes.length;
+                total += count;
+                labs += classes.filter(c => c.type === 'ЛАБ').length;
+                lectures += classes.filter(c => c.type === 'ЛЕК').length;
+                if (count > maxDayCount) {
+                    maxDayCount = count;
+                    maxDayLabel = DAY_LABELS[dayNum - 1];
+                }
+            });
+
+            el.innerHTML = `
+                <div class="stats-chip">Всего пар: <strong>${total}</strong></div>
+                <div class="stats-chip">Лекций: <strong>${lectures}</strong> · Лаб: <strong>${labs}</strong></div>
+                <div class="stats-chip">Самый загруженный: <strong>${maxDayLabel}</strong> (${maxDayCount})</div>
+            `;
+        }
+
+        function renderPanelState() {
+            const todayBtn = document.getElementById('todayModeBtn');
+            todayBtn.classList.toggle('active', todayModeEnabled);
+            todayBtn.textContent = todayModeEnabled ? 'Режим Сегодня: ВКЛ' : 'Режим Сегодня';
+
+            document.getElementById('typeFilter').value = typeFilterValue;
+            document.getElementById('searchInput').value = searchQueryValue;
+            document.getElementById('notifLeadTime').value = String(notifLeadTimeMins);
+        }
+
+        function applyViewRenders() {
+            renderSchedule(currentWeek);
+            renderStats();
+            renderNextClassCard();
+        }
+
+        function buildWeekDateMap(targetWeek, fromDate = new Date()) {
+            const start = new Date(fromDate);
+            start.setHours(0, 0, 0, 0);
+            for (let offset = 0; offset < 21; offset += 1) {
+                const date = new Date(start);
+                date.setDate(start.getDate() + offset);
+                if (date.getDay() === 1 && detectWeekForDate(date) === targetWeek) {
+                    return [1, 2, 3, 4, 5].reduce((acc, dayNum) => {
+                        const dayDate = new Date(date);
+                        dayDate.setDate(date.getDate() + (dayNum - 1));
+                        acc[dayNum] = dayDate;
+                        return acc;
+                    }, {});
+                }
+            }
+            return {};
+        }
+
+        function formatDateForICS(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            return `${y}${m}${d}T${hh}${mm}00`;
+        }
+
+        function createICSFile(events, fileName) {
+            if (!events.length) return false;
+            const lines = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//ITSS Schedule//RU',
+            ];
+
+            events.forEach((event, idx) => {
+                lines.push('BEGIN:VEVENT');
+                lines.push(`UID:itss-${Date.now()}-${idx}@itss-schedule`);
+                lines.push(`DTSTAMP:${formatDateForICS(new Date())}`);
+                lines.push(`DTSTART:${formatDateForICS(event.start)}`);
+                lines.push(`DTEND:${formatDateForICS(event.end)}`);
+                lines.push(`SUMMARY:${event.title}`);
+                if (event.location) lines.push(`LOCATION:${event.location}`);
+                if (event.description) lines.push(`DESCRIPTION:${event.description}`);
+                lines.push('END:VEVENT');
+            });
+
+            lines.push('END:VCALENDAR');
+
+            const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            return true;
+        }
+
+        function collectEventsForDay(week, dayNum, dateRef) {
+            const classes = getClassesForDay(week, dayNum)
+                .filter(c => classMatchesFilters(c, searchQueryValue, typeFilterValue));
+            return classes.map(c => {
+                const parts = pairDateParts(dateRef, c.pair);
+                return {
+                    title: `${c.name}${c.type ? ` (${c.type})` : ''}`,
+                    location: c.room || '',
+                    description: [c.teacher || '', `${c.pair}-я пара`].filter(Boolean).join(' · '),
+                    start: parts.start,
+                    end: parts.end,
+                };
+            });
+        }
+
+        function exportTodayICS() {
+            const now = new Date();
+            const dayNum = now.getDay();
+            if (dayNum < 1 || dayNum > 5) return;
+            const week = detectCurrentWeek();
+            const events = collectEventsForDay(week, dayNum, now);
+            createICSFile(events, 'itss-today.ics');
+        }
+
+        function exportWeekICS() {
+            const dateMap = buildWeekDateMap(currentWeek);
+            const events = [1, 2, 3, 4, 5].flatMap(dayNum => {
+                const dateRef = dateMap[dayNum];
+                if (!dateRef) return [];
+                return collectEventsForDay(currentWeek, dayNum, dateRef);
+            });
+            createICSFile(events, `itss-week-${currentWeek}.ics`);
+        }
+
+        async function copyText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        async function shareToday() {
+            const now = new Date();
+            const dayNum = now.getDay();
+            if (dayNum < 1 || dayNum > 5) return;
+            const week = detectCurrentWeek();
+            const classes = getClassesForDay(week, dayNum);
+            const title = `Расписание на ${DAY_LABELS[dayNum - 1]} (${week} нед.)`;
+            const rows = classes.map(c => {
+                const slot = TIME_SLOTS[c.pair - 1];
+                return `${c.pair}. ${slot.start}-${slot.end} ${c.name}${c.room ? `, ауд. ${c.room}` : ''}`;
+            });
+            const payload = `${title}\n${rows.join('\n') || 'Пар нет'}`;
+            await copyText(payload);
+        }
+
+        async function shareClass(dayNum, pairNum) {
+            const cls = getClassesForDay(currentWeek, dayNum).find(c => c.pair === pairNum);
+            if (!cls) return;
+            const slot = TIME_SLOTS[cls.pair - 1];
+            const text = `${DAY_LABELS[dayNum - 1]}, ${slot.start}-${slot.end} · ${cls.name}${cls.teacher ? ` · ${cls.teacher}` : ''}${cls.room ? ` · ауд. ${cls.room}` : ''}`;
+            await copyText(text);
+        }
+
+        function updateOfflineBanner() {
+            const banner = document.getElementById('offlineBanner');
+            banner.classList.toggle('show', !navigator.onLine);
+        }
+
+        function setupChangelogBanner() {
+            const banner = document.getElementById('changelogBanner');
+            const text = document.getElementById('changelogText');
+            const lastHash = localStorage.getItem(STORAGE_SCHEDULE_HASH_KEY);
+            const dismissed = localStorage.getItem(STORAGE_CHANGELOG_DISMISSED_KEY);
+            const changed = Boolean(lastHash && lastHash !== scheduleHash);
+
+            if (changed && dismissed !== scheduleHash) {
+                text.textContent = 'Расписание обновилось: появились новые функции и настройки.';
+                banner.classList.add('show');
+            }
+
+            localStorage.setItem(STORAGE_SCHEDULE_HASH_KEY, scheduleHash);
+        }
+
+        function resetSettings() {
+            todayModeEnabled = false;
+            typeFilterValue = 'all';
+            searchQueryValue = '';
+            notifLeadTimeMins = 15;
+            collapsedDays.clear();
+            localStorage.removeItem(STORAGE_COLLAPSED_DAYS_KEY);
+            savePanelState();
+            renderPanelState();
+            applyViewRenders();
+        }
+
         function renderTimeGrid() {
             const el = document.getElementById('timeGrid');
             el.innerHTML = TIME_SLOTS.map(s =>
@@ -1271,7 +1819,7 @@
             banner.className = 'notif-banner';
             banner.innerHTML = `
                 <span>🔔</span>
-                <span>Включить уведомления за 15 мин до пары?</span>
+                <span>Включить уведомления за ${notifLeadTimeMins} мин до пары?</span>
                 <button class="close-btn" type="button" aria-label="Закрыть">✕</button>
             `;
             banner.addEventListener('click', async (e) => {
@@ -1319,7 +1867,7 @@
                 const diff = startMins - nowMins;
                 const notifKey = `${todayKey}-${c.pair}`;
 
-                if (diff > 0 && diff <= 15 && !notifiedClasses.has(notifKey)) {
+                if (diff > 0 && diff <= notifLeadTimeMins && !notifiedClasses.has(notifKey)) {
                     notifiedClasses.add(notifKey);
                     new Notification(`📚 ${c.name}`, {
                         body: `Через ${diff} мин · ${slot.start} · ${c.room || 'без ауд.'}${c.teacher ? ' · ' + c.teacher : ''}`,
@@ -1337,6 +1885,8 @@
         }
 
         // === INIT ===
+        renderPanelState();
+
         document.querySelector('.week-toggle').addEventListener('click', (event) => {
             const button = event.target.closest('.week-btn');
             if (!button) return;
@@ -1345,6 +1895,16 @@
         });
 
         document.getElementById('schedule').addEventListener('click', (event) => {
+            const shareBtn = event.target.closest('[data-share="class"]');
+            if (shareBtn) {
+                const dayNum = Number.parseInt(shareBtn.dataset.day, 10);
+                const pairNum = Number.parseInt(shareBtn.dataset.pair, 10);
+                if (!Number.isNaN(dayNum) && !Number.isNaN(pairNum)) {
+                    shareClass(dayNum, pairNum);
+                }
+                return;
+            }
+
             const header = event.target.closest('.day-header');
             if (!header) return;
             const dayNum = parseInt(header.dataset.day, 10);
@@ -1360,15 +1920,59 @@
             if (!Number.isNaN(dayNum)) toggleDay(dayNum);
         });
 
+        document.getElementById('todayModeBtn').addEventListener('click', () => {
+            todayModeEnabled = !todayModeEnabled;
+            savePanelState();
+            renderPanelState();
+            applyViewRenders();
+        });
+
+        document.getElementById('typeFilter').addEventListener('change', (event) => {
+            typeFilterValue = event.target.value;
+            savePanelState();
+            applyViewRenders();
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (event) => {
+            searchQueryValue = event.target.value.trim();
+            savePanelState();
+            applyViewRenders();
+        });
+
+        document.getElementById('notifLeadTime').addEventListener('change', (event) => {
+            const mins = Number.parseInt(event.target.value, 10);
+            if (![5, 10, 15, 30].includes(mins)) return;
+            notifLeadTimeMins = mins;
+            savePanelState();
+        });
+
+        document.getElementById('exportTodayBtn').addEventListener('click', exportTodayICS);
+        document.getElementById('exportWeekBtn').addEventListener('click', exportWeekICS);
+        document.getElementById('shareTodayBtn').addEventListener('click', shareToday);
+        document.getElementById('resetStateBtn').addEventListener('click', resetSettings);
+
+        document.getElementById('changelogCloseBtn').addEventListener('click', () => {
+            document.getElementById('changelogBanner').classList.remove('show');
+            localStorage.setItem(STORAGE_CHANGELOG_DISMISSED_KEY, scheduleHash);
+        });
+
+        window.addEventListener('online', updateOfflineBanner);
+        window.addEventListener('offline', updateOfflineBanner);
+
         // Auto-select detected week
         renderSchedule(currentWeek);
         renderTimeGrid();
         updateCurrentInfo();
+        renderStats();
         renderNextClassCard();
         setInterval(() => {
             updateCurrentInfo();
             renderNextClassCard();
         }, 1000); // Update every second
+        setInterval(() => {
+            renderSchedule(currentWeek);
+            renderStats();
+        }, 30000);
 
         // Set active week button on load
         document.querySelectorAll('.week-btn').forEach(btn => {
@@ -1376,6 +1980,8 @@
         });
 
         // Start notification checks
+        updateOfflineBanner();
+        setupChangelogBanner();
         requestNotifPermission();
         setInterval(checkNotifications, 30000); // Check every 30 sec
         checkNotifications(); // Check immediately
