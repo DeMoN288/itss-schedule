@@ -28,6 +28,9 @@
             --border: rgba(148, 163, 184, 0.2);
             --border-active: rgba(14, 165, 233, 0.5);
             --shadow: 0 18px 40px rgba(2, 8, 23, 0.45);
+            --body-bg: radial-gradient(circle at 20% -10%, rgba(14, 165, 233, 0.22), transparent 38%), radial-gradient(circle at 86% 6%, rgba(34, 197, 94, 0.14), transparent 32%), linear-gradient(150deg, #050914 0%, #0b1325 48%, #0d1729 100%);
+            --bg-blob-a: rgba(14, 165, 233, 0.12);
+            --bg-blob-b: rgba(34, 197, 94, 0.08);
 
             /* Subject colors */
             --subj-rmp: #7c3aed;
@@ -50,9 +53,7 @@
 
         body {
             font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: radial-gradient(circle at 20% -10%, rgba(14, 165, 233, 0.22), transparent 38%),
-                radial-gradient(circle at 86% 6%, rgba(34, 197, 94, 0.14), transparent 32%),
-                linear-gradient(150deg, #050914 0%, #0b1325 48%, #0d1729 100%);
+            background: var(--body-bg);
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
@@ -77,8 +78,8 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(ellipse at 30% 20%, rgba(14, 165, 233, 0.12) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(34, 197, 94, 0.08) 0%, transparent 50%);
+            background: radial-gradient(ellipse at 30% 20%, var(--bg-blob-a) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, var(--bg-blob-b) 0%, transparent 50%);
             animation: bgShift 20s ease-in-out infinite alternate;
         }
 
@@ -436,6 +437,50 @@
             font-weight: 700;
         }
 
+        .history {
+            margin-top: 14px;
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(17, 30, 52, 0.64));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .history h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .history-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 10px;
+            border-radius: 10px;
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .history-date {
+            font-weight: 700;
+            color: var(--text-primary);
+            min-width: 88px;
+        }
+
+        .history-text {
+            color: var(--text-secondary);
+        }
+
         /* Schedule grid */
         .schedule {
             display: flex;
@@ -620,6 +665,39 @@
             align-items: center;
             gap: 8px;
             flex-wrap: wrap;
+        }
+
+        .attendance-controls {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .attendance-btn {
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.7);
+            color: var(--text-secondary);
+            border-radius: 7px;
+            padding: 3px 7px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .attendance-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .attendance-btn.active-present {
+            border-color: rgba(74, 222, 128, 0.45);
+            background: rgba(34, 197, 94, 0.18);
+            color: #86efac;
+        }
+
+        .attendance-btn.active-missed {
+            border-color: rgba(248, 113, 113, 0.45);
+            background: rgba(239, 68, 68, 0.18);
+            color: #fca5a5;
         }
 
         .status-badge {
@@ -1110,6 +1188,11 @@
         <div class="control-panel">
             <div class="panel-row">
                 <button class="panel-btn" id="todayModeBtn" type="button">Режим Сегодня</button>
+                <select class="panel-select" id="themeSelect">
+                    <option value="ocean">Тема: Ocean</option>
+                    <option value="sunset">Тема: Sunset</option>
+                    <option value="graphite">Тема: Graphite</option>
+                </select>
                 <input class="panel-input" id="searchInput" type="search" placeholder="Поиск: предмет/препод/аудитория">
                 <select class="panel-select" id="typeFilter">
                     <option value="all">Все типы</option>
@@ -1129,6 +1212,7 @@
                     <option value="15" selected>15 мин</option>
                     <option value="30">30 мин</option>
                 </select>
+                <button class="panel-btn" id="personalModeBtn" type="button">Личный режим</button>
                 <button class="panel-btn" id="shareTodayBtn" type="button">Поделиться днем</button>
                 <button class="panel-btn" id="resetStateBtn" type="button">Сбросить настройки</button>
             </div>
@@ -1141,6 +1225,11 @@
         <div class="stats-bar" id="statsBar"></div>
 
         <div class="schedule" id="schedule"></div>
+
+        <div class="history" id="historySection">
+            <h3>История изменений расписания</h3>
+            <div class="history-list" id="changeHistory"></div>
+        </div>
 
         <div class="legend">
             <h3>Типы занятий</h3>
@@ -1188,8 +1277,74 @@
         const STORAGE_NOTIF_LEAD_TIME_KEY = 'schedule:notifLeadTime';
         const STORAGE_SCHEDULE_HASH_KEY = 'schedule:dataHash';
         const STORAGE_CHANGELOG_DISMISSED_KEY = 'schedule:changelogDismissed';
+        const STORAGE_THEME_KEY = 'schedule:theme';
+        const STORAGE_PERSONAL_MODE_KEY = 'schedule:personalMode';
+        const STORAGE_ATTENDANCE_KEY = 'schedule:attendance';
         const APP_SCHEDULE_VERSION = '2026-spring-v2';
         const SW_VERSION = '3';
+
+        const THEMES = {
+            ocean: {
+                bgPrimary: '#070b14',
+                bgSecondary: '#0f172a',
+                bgCard: '#111c2f',
+                bgGlass: 'rgba(15, 23, 42, 0.72)',
+                textPrimary: '#f3f7ff',
+                textSecondary: '#b7c2d7',
+                textMuted: '#7f8da7',
+                accent1: '#0ea5e9',
+                accent2: '#22c55e',
+                accent3: '#f59e0b',
+                border: 'rgba(148, 163, 184, 0.2)',
+                borderActive: 'rgba(14, 165, 233, 0.5)',
+                shadow: '0 18px 40px rgba(2, 8, 23, 0.45)',
+                bodyBg: 'radial-gradient(circle at 20% -10%, rgba(14, 165, 233, 0.22), transparent 38%), radial-gradient(circle at 86% 6%, rgba(34, 197, 94, 0.14), transparent 32%), linear-gradient(150deg, #050914 0%, #0b1325 48%, #0d1729 100%)',
+                bgBlobA: 'rgba(14, 165, 233, 0.12)',
+                bgBlobB: 'rgba(34, 197, 94, 0.08)'
+            },
+            sunset: {
+                bgPrimary: '#1a0f0a',
+                bgSecondary: '#2b1a10',
+                bgCard: '#3a2015',
+                bgGlass: 'rgba(45, 24, 16, 0.72)',
+                textPrimary: '#fff4e8',
+                textSecondary: '#f3cbb0',
+                textMuted: '#c79a82',
+                accent1: '#f97316',
+                accent2: '#f59e0b',
+                accent3: '#ef4444',
+                border: 'rgba(251, 146, 60, 0.26)',
+                borderActive: 'rgba(249, 115, 22, 0.55)',
+                shadow: '0 18px 40px rgba(41, 18, 9, 0.52)',
+                bodyBg: 'radial-gradient(circle at 16% -8%, rgba(249, 115, 22, 0.3), transparent 42%), radial-gradient(circle at 84% 12%, rgba(239, 68, 68, 0.2), transparent 34%), linear-gradient(150deg, #1b0c08 0%, #2a140d 52%, #32180f 100%)',
+                bgBlobA: 'rgba(249, 115, 22, 0.14)',
+                bgBlobB: 'rgba(245, 158, 11, 0.1)'
+            },
+            graphite: {
+                bgPrimary: '#0d0f12',
+                bgSecondary: '#151922',
+                bgCard: '#1b2230',
+                bgGlass: 'rgba(21, 25, 34, 0.74)',
+                textPrimary: '#f4f6fb',
+                textSecondary: '#c3ccde',
+                textMuted: '#8e9ab2',
+                accent1: '#60a5fa',
+                accent2: '#94a3b8',
+                accent3: '#38bdf8',
+                border: 'rgba(148, 163, 184, 0.26)',
+                borderActive: 'rgba(96, 165, 250, 0.56)',
+                shadow: '0 18px 40px rgba(3, 6, 12, 0.5)',
+                bodyBg: 'radial-gradient(circle at 16% -10%, rgba(96, 165, 250, 0.24), transparent 42%), radial-gradient(circle at 82% 10%, rgba(148, 163, 184, 0.2), transparent 34%), linear-gradient(150deg, #0a0c10 0%, #131925 52%, #171d2a 100%)',
+                bgBlobA: 'rgba(96, 165, 250, 0.12)',
+                bgBlobB: 'rgba(148, 163, 184, 0.1)'
+            }
+        };
+
+        const CHANGELOG_ITEMS = [
+            { date: '2026-02-11', text: 'Добавлен блок следующей пары и таймер.' },
+            { date: '2026-02-11', text: 'Появились фильтры, поиск, экспорт ICS и шаринг.' },
+            { date: '2026-02-11', text: 'Добавлены темы оформления, личный режим и учет посещаемости.' }
+        ];
 
         const SUBJECT_COLORS = {
             'Разработка мобильных приложений': '#7c3aed',
@@ -1364,6 +1519,9 @@
             localStorage.setItem(STORAGE_TYPE_FILTER_KEY, typeFilterValue);
             localStorage.setItem(STORAGE_SEARCH_QUERY_KEY, searchQueryValue);
             localStorage.setItem(STORAGE_NOTIF_LEAD_TIME_KEY, String(notifLeadTimeMins));
+            localStorage.setItem(STORAGE_THEME_KEY, activeTheme);
+            localStorage.setItem(STORAGE_PERSONAL_MODE_KEY, personalModeEnabled ? '1' : '0');
+            localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(attendanceState));
         }
 
         let currentWeek = getSavedWeek() || detectCurrentWeek();
@@ -1372,6 +1530,16 @@
         let typeFilterValue = getSavedString(STORAGE_TYPE_FILTER_KEY, 'all');
         let searchQueryValue = getSavedString(STORAGE_SEARCH_QUERY_KEY, '').trim();
         let notifLeadTimeMins = getSavedInt(STORAGE_NOTIF_LEAD_TIME_KEY, 15);
+        let activeTheme = getSavedString(STORAGE_THEME_KEY, 'ocean');
+        if (!THEMES[activeTheme]) activeTheme = 'ocean';
+        let personalModeEnabled = getSavedBool(STORAGE_PERSONAL_MODE_KEY, false);
+        let attendanceState = {};
+        try {
+            const parsed = JSON.parse(getSavedString(STORAGE_ATTENDANCE_KEY, '{}'));
+            attendanceState = parsed && typeof parsed === 'object' ? parsed : {};
+        } catch {
+            attendanceState = {};
+        }
         if (![5, 10, 15, 30].includes(notifLeadTimeMins)) notifLeadTimeMins = 15;
         const scheduleHash = computeScheduleHash();
 
@@ -1395,6 +1563,58 @@
             if (!query) return true;
             const q = query.toLowerCase();
             return [c.name, c.teacher, c.room, c.type].some(v => (v || '').toLowerCase().includes(q));
+        }
+
+        function getAttendanceKey(week, dayNum, pairNum, className) {
+            return `${week}-${dayNum}-${pairNum}-${className}`;
+        }
+
+        function getAttendanceMark(week, dayNum, classItem) {
+            const key = getAttendanceKey(week, dayNum, classItem.pair, classItem.name);
+            return attendanceState[key] || 'none';
+        }
+
+        function setAttendanceMark(week, dayNum, classItem, mark) {
+            const key = getAttendanceKey(week, dayNum, classItem.pair, classItem.name);
+            if (mark === 'none') {
+                delete attendanceState[key];
+            } else {
+                attendanceState[key] = mark;
+            }
+            savePanelState();
+            renderStats();
+            renderSchedule(currentWeek);
+        }
+
+        function applyTheme(themeKey) {
+            const theme = THEMES[themeKey] || THEMES.ocean;
+            const root = document.documentElement.style;
+            root.setProperty('--bg-primary', theme.bgPrimary);
+            root.setProperty('--bg-secondary', theme.bgSecondary);
+            root.setProperty('--bg-card', theme.bgCard);
+            root.setProperty('--bg-glass', theme.bgGlass);
+            root.setProperty('--text-primary', theme.textPrimary);
+            root.setProperty('--text-secondary', theme.textSecondary);
+            root.setProperty('--text-muted', theme.textMuted);
+            root.setProperty('--accent-1', theme.accent1);
+            root.setProperty('--accent-2', theme.accent2);
+            root.setProperty('--accent-3', theme.accent3);
+            root.setProperty('--border', theme.border);
+            root.setProperty('--border-active', theme.borderActive);
+            root.setProperty('--shadow', theme.shadow);
+            root.setProperty('--body-bg', theme.bodyBg);
+            root.setProperty('--bg-blob-a', theme.bgBlobA);
+            root.setProperty('--bg-blob-b', theme.bgBlobB);
+        }
+
+        function renderChangeHistory() {
+            const el = document.getElementById('changeHistory');
+            el.innerHTML = CHANGELOG_ITEMS.map(item => `
+                <div class="history-item">
+                    <span class="history-date">${item.date}</span>
+                    <span class="history-text">${item.text}</span>
+                </div>
+            `).join('');
         }
 
         function getDayStatus(dayNum, pairNum, week, now) {
@@ -1494,6 +1714,13 @@
                         if (c.type) html += `<span class="class-type ${getTypeClass(c.type)}">${c.type}</span>`;
                         if (c.room) html += `<span class="class-room">${highlightMatch(c.room, searchQueryValue)}</span>`;
                         if (status.badgeText) html += `<span class="status-badge${status.badgeClass}">${status.badgeText}</span>`;
+                        if (personalModeEnabled) {
+                            const mark = getAttendanceMark(week, dayNum, c);
+                            html += `<span class="attendance-controls">`;
+                            html += `<button class="attendance-btn ${mark === 'present' ? 'active-present' : ''}" type="button" data-attendance="present" data-day="${dayNum}" data-pair="${c.pair}" data-name="${escapeHtml(c.name)}">Посещаю</button>`;
+                            html += `<button class="attendance-btn ${mark === 'missed' ? 'active-missed' : ''}" type="button" data-attendance="missed" data-day="${dayNum}" data-pair="${c.pair}" data-name="${escapeHtml(c.name)}">Пропускаю</button>`;
+                            html += `</span>`;
+                        }
                         html += `<button class="share-btn" type="button" data-share="class" data-day="${dayNum}" data-pair="${c.pair}">Поделиться</button>`;
                         html += `</div></div></div>`;
                     });
@@ -1680,6 +1907,8 @@
             let lectures = 0;
             let maxDayCount = 0;
             let maxDayLabel = '-';
+            let attended = 0;
+            let missed = 0;
 
             visibleDays.forEach(dayNum => {
                 const classes = getClassesForDay(currentWeek, dayNum)
@@ -1688,16 +1917,26 @@
                 total += count;
                 labs += classes.filter(c => c.type === 'ЛАБ').length;
                 lectures += classes.filter(c => c.type === 'ЛЕК').length;
+                classes.forEach(c => {
+                    const mark = getAttendanceMark(currentWeek, dayNum, c);
+                    if (mark === 'present') attended += 1;
+                    if (mark === 'missed') missed += 1;
+                });
                 if (count > maxDayCount) {
                     maxDayCount = count;
                     maxDayLabel = DAY_LABELS[dayNum - 1];
                 }
             });
 
+            const marked = attended + missed;
+            const attendanceRate = marked ? Math.round((attended / marked) * 100) : 0;
+
             el.innerHTML = `
                 <div class="stats-chip">Всего пар: <strong>${total}</strong></div>
                 <div class="stats-chip">Лекций: <strong>${lectures}</strong> · Лаб: <strong>${labs}</strong></div>
                 <div class="stats-chip">Самый загруженный: <strong>${maxDayLabel}</strong> (${maxDayCount})</div>
+                <div class="stats-chip">Посещаю: <strong>${attended}</strong> · Пропускаю: <strong>${missed}</strong></div>
+                <div class="stats-chip">Личная посещаемость: <strong>${attendanceRate}%</strong></div>
             `;
         }
 
@@ -1706,9 +1945,14 @@
             todayBtn.classList.toggle('active', todayModeEnabled);
             todayBtn.textContent = todayModeEnabled ? 'Режим Сегодня: ВКЛ' : 'Режим Сегодня';
 
+            const personalBtn = document.getElementById('personalModeBtn');
+            personalBtn.classList.toggle('active', personalModeEnabled);
+            personalBtn.textContent = personalModeEnabled ? 'Личный режим: ВКЛ' : 'Личный режим';
+
             document.getElementById('typeFilter').value = typeFilterValue;
             document.getElementById('searchInput').value = searchQueryValue;
             document.getElementById('notifLeadTime').value = String(notifLeadTimeMins);
+            document.getElementById('themeSelect').value = activeTheme;
         }
 
         function applyViewRenders() {
@@ -1886,9 +2130,13 @@
             typeFilterValue = 'all';
             searchQueryValue = '';
             notifLeadTimeMins = 15;
+            activeTheme = 'ocean';
+            personalModeEnabled = false;
+            attendanceState = {};
             collapsedDays.clear();
             localStorage.removeItem(STORAGE_COLLAPSED_DAYS_KEY);
             savePanelState();
+            applyTheme(activeTheme);
             renderPanelState();
             applyViewRenders();
         }
@@ -2059,6 +2307,21 @@
         });
 
         document.getElementById('schedule').addEventListener('click', (event) => {
+            const attendanceBtn = event.target.closest('[data-attendance]');
+            if (attendanceBtn) {
+                const dayNum = Number.parseInt(attendanceBtn.dataset.day, 10);
+                const pairNum = Number.parseInt(attendanceBtn.dataset.pair, 10);
+                const mark = attendanceBtn.dataset.attendance;
+                if (!Number.isNaN(dayNum) && !Number.isNaN(pairNum) && (mark === 'present' || mark === 'missed')) {
+                    const classItem = getClassesForDay(currentWeek, dayNum).find(c => c.pair === pairNum);
+                    if (classItem) {
+                        const prev = getAttendanceMark(currentWeek, dayNum, classItem);
+                        setAttendanceMark(currentWeek, dayNum, classItem, prev === mark ? 'none' : mark);
+                    }
+                }
+                return;
+            }
+
             const easterTrigger = event.target.closest('[data-easter="smoleha"]');
             if (easterTrigger) {
                 openSmolehaEgg();
@@ -2095,6 +2358,21 @@
             savePanelState();
             renderPanelState();
             applyViewRenders();
+        });
+
+        document.getElementById('personalModeBtn').addEventListener('click', () => {
+            personalModeEnabled = !personalModeEnabled;
+            savePanelState();
+            renderPanelState();
+            applyViewRenders();
+        });
+
+        document.getElementById('themeSelect').addEventListener('change', (event) => {
+            const selected = event.target.value;
+            if (!THEMES[selected]) return;
+            activeTheme = selected;
+            applyTheme(activeTheme);
+            savePanelState();
         });
 
         document.getElementById('typeFilter').addEventListener('change', (event) => {
@@ -2138,11 +2416,13 @@
         window.addEventListener('offline', updateOfflineBanner);
 
         // Auto-select detected week
+        applyTheme(activeTheme);
         renderSchedule(currentWeek);
         renderTimeGrid();
         updateCurrentInfo();
         renderStats();
         renderNextClassCard();
+        renderChangeHistory();
         setInterval(() => {
             updateCurrentInfo();
             renderNextClassCard();
