@@ -972,6 +972,7 @@
             inset: 0;
             z-index: 9999;
             display: none;
+            pointer-events: none;
             align-items: center;
             justify-content: center;
             background: radial-gradient(circle at 30% 20%, rgba(250, 204, 21, 0.25), rgba(15, 23, 42, 0.92));
@@ -981,6 +982,7 @@
 
         .easter-egg.show {
             display: flex;
+            pointer-events: auto;
             animation: eggFade 0.28s ease;
         }
 
