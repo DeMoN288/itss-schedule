@@ -1050,6 +1050,7 @@
         const STORAGE_SCHEDULE_HASH_KEY = 'schedule:dataHash';
         const STORAGE_CHANGELOG_DISMISSED_KEY = 'schedule:changelogDismissed';
         const APP_SCHEDULE_VERSION = '2026-spring-v2';
+        const SW_VERSION = '3';
 
         const SUBJECT_COLORS = {
             'Разработка мобильных приложений': '#7c3aed',
@@ -1881,7 +1882,7 @@
 
         // === PWA SERVICE WORKER ===
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => { });
+            navigator.serviceWorker.register(`sw.js?v=${SW_VERSION}`, { updateViaCache: 'none' }).catch(() => { });
         }
 
         // === INIT ===
