@@ -623,6 +623,14 @@
             color: var(--text-secondary);
         }
 
+        .class-teacher.easter-trigger {
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-style: dashed;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+        }
+
         .class-type {
             font-size: 10px;
             font-weight: 700;
@@ -958,11 +966,92 @@
             background: rgba(239, 68, 68, 0.15);
             color: #f87171;
         }
+
+        .easter-egg {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 30% 20%, rgba(250, 204, 21, 0.25), rgba(15, 23, 42, 0.92));
+            backdrop-filter: blur(4px);
+            padding: 20px;
+        }
+
+        .easter-egg.show {
+            display: flex;
+            animation: eggFade 0.28s ease;
+        }
+
+        .easter-egg-card {
+            width: min(760px, 100%);
+            border-radius: 22px;
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            background: linear-gradient(145deg, rgba(17, 24, 39, 0.95), rgba(30, 41, 59, 0.92));
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+            padding: 28px 20px;
+            text-align: center;
+        }
+
+        .easter-egg-kicker {
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #fbbf24;
+            margin-bottom: 8px;
+        }
+
+        .easter-egg-title {
+            font-size: clamp(30px, 6vw, 56px);
+            font-weight: 800;
+            line-height: 1.05;
+            margin-bottom: 10px;
+            color: #fde68a;
+            text-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
+        }
+
+        .easter-egg-subtitle {
+            color: #e5e7eb;
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+
+        .easter-egg-btn {
+            border: 1px solid rgba(251, 191, 36, 0.45);
+            background: rgba(251, 191, 36, 0.15);
+            color: #fde68a;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        @keyframes eggFade {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="bg-gradient"></div>
+
+    <div class="easter-egg" id="smolehaEgg" aria-hidden="true">
+        <div class="easter-egg-card" role="dialog" aria-modal="true" aria-labelledby="eggTitle">
+            <div class="easter-egg-kicker">Секретный режим</div>
+            <div class="easter-egg-title" id="eggTitle">ЛЕГЕНДА ПОТОКА</div>
+            <div class="easter-egg-subtitle">Смолеха-mode активирован. Респект преподавателю 🫡</div>
+            <button class="easter-egg-btn" id="closeEggBtn" type="button">Закрыть</button>
+        </div>
+    </div>
 
     <div class="container">
         <header class="header">
@@ -1362,7 +1451,14 @@
                         html += `<div class="class-info">`;
                         html += `<div class="class-name">${highlightMatch(c.name, searchQueryValue)}</div>`;
                         html += `<div class="class-meta">`;
-                        if (c.teacher) html += `<span class="class-teacher">${highlightMatch(c.teacher, searchQueryValue)}</span>`;
+                        if (c.teacher) {
+                            const teacherText = highlightMatch(c.teacher, searchQueryValue);
+                            if (c.teacher.toLowerCase().includes('смолеха')) {
+                                html += `<span class="class-teacher easter-trigger" data-easter="smoleha">${teacherText}</span>`;
+                            } else {
+                                html += `<span class="class-teacher">${teacherText}</span>`;
+                            }
+                        }
                         if (c.type) html += `<span class="class-type ${getTypeClass(c.type)}">${c.type}</span>`;
                         if (c.room) html += `<span class="class-room">${highlightMatch(c.room, searchQueryValue)}</span>`;
                         if (status.badgeText) html += `<span class="status-badge${status.badgeClass}">${status.badgeText}</span>`;
@@ -1721,6 +1817,23 @@
             banner.classList.toggle('show', !navigator.onLine);
         }
 
+        function openSmolehaEgg() {
+            const el = document.getElementById('smolehaEgg');
+            el.classList.add('show');
+            el.setAttribute('aria-hidden', 'false');
+            if (navigator.vibrate) navigator.vibrate([90, 50, 90]);
+            setTimeout(() => {
+                closeSmolehaEgg();
+            }, 3800);
+        }
+
+        function closeSmolehaEgg() {
+            const el = document.getElementById('smolehaEgg');
+            if (!el.classList.contains('show')) return;
+            el.classList.remove('show');
+            el.setAttribute('aria-hidden', 'true');
+        }
+
         function setupChangelogBanner() {
             const banner = document.getElementById('changelogBanner');
             const text = document.getElementById('changelogText');
@@ -1914,6 +2027,12 @@
         });
 
         document.getElementById('schedule').addEventListener('click', (event) => {
+            const easterTrigger = event.target.closest('[data-easter="smoleha"]');
+            if (easterTrigger) {
+                openSmolehaEgg();
+                return;
+            }
+
             const shareBtn = event.target.closest('[data-share="class"]');
             if (shareBtn) {
                 const dayNum = Number.parseInt(shareBtn.dataset.day, 10);
@@ -1973,6 +2092,14 @@
         document.getElementById('changelogCloseBtn').addEventListener('click', () => {
             document.getElementById('changelogBanner').classList.remove('show');
             localStorage.setItem(STORAGE_CHANGELOG_DISMISSED_KEY, scheduleHash);
+        });
+
+        document.getElementById('closeEggBtn').addEventListener('click', closeSmolehaEgg);
+        document.getElementById('smolehaEgg').addEventListener('click', (event) => {
+            if (event.target.id === 'smolehaEgg') closeSmolehaEgg();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeSmolehaEgg();
         });
 
         window.addEventListener('online', updateOfflineBanner);
