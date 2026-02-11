@@ -688,6 +688,11 @@
             color: var(--text-primary);
         }
 
+        .attendance-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
         .attendance-btn.active-present {
             border-color: rgba(74, 222, 128, 0.45);
             background: rgba(34, 197, 94, 0.18);
@@ -1212,6 +1217,7 @@
                     <option value="15" selected>15 мин</option>
                     <option value="30">30 мин</option>
                 </select>
+                <input class="panel-input" id="attendanceDate" type="date" title="Дата учета посещаемости">
                 <button class="panel-btn" id="personalModeBtn" type="button">Личный режим</button>
                 <button class="panel-btn" id="shareTodayBtn" type="button">Поделиться днем</button>
                 <button class="panel-btn" id="resetStateBtn" type="button">Сбросить настройки</button>
@@ -1280,6 +1286,7 @@
         const STORAGE_THEME_KEY = 'schedule:theme';
         const STORAGE_PERSONAL_MODE_KEY = 'schedule:personalMode';
         const STORAGE_ATTENDANCE_KEY = 'schedule:attendance';
+        const STORAGE_ATTENDANCE_DATE_KEY = 'schedule:attendanceDate';
         const APP_SCHEDULE_VERSION = '2026-spring-v2';
         const SW_VERSION = '3';
 
@@ -1521,6 +1528,7 @@
             localStorage.setItem(STORAGE_NOTIF_LEAD_TIME_KEY, String(notifLeadTimeMins));
             localStorage.setItem(STORAGE_THEME_KEY, activeTheme);
             localStorage.setItem(STORAGE_PERSONAL_MODE_KEY, personalModeEnabled ? '1' : '0');
+            localStorage.setItem(STORAGE_ATTENDANCE_DATE_KEY, attendanceDateValue);
             localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(attendanceState));
         }
 
@@ -1533,6 +1541,8 @@
         let activeTheme = getSavedString(STORAGE_THEME_KEY, 'ocean');
         if (!THEMES[activeTheme]) activeTheme = 'ocean';
         let personalModeEnabled = getSavedBool(STORAGE_PERSONAL_MODE_KEY, false);
+        let attendanceDateValue = getSavedString(STORAGE_ATTENDANCE_DATE_KEY, '');
+        if (!attendanceDateValue) attendanceDateValue = toIsoDateLocal(new Date());
         let attendanceState = {};
         try {
             const parsed = JSON.parse(getSavedString(STORAGE_ATTENDANCE_KEY, '{}'));
@@ -1565,17 +1575,57 @@
             return [c.name, c.teacher, c.room, c.type].some(v => (v || '').toLowerCase().includes(q));
         }
 
-        function getAttendanceKey(week, dayNum, pairNum, className) {
-            return `${week}-${dayNum}-${pairNum}-${className}`;
+        function toIsoDateLocal(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         }
 
-        function getAttendanceMark(week, dayNum, classItem) {
-            const key = getAttendanceKey(week, dayNum, classItem.pair, classItem.name);
+        function getAttendanceKey(week, dayNum, pairNum, className, dateKey) {
+            return `${dateKey}-${week}-${dayNum}-${pairNum}-${className}`;
+        }
+
+        function parseDateInputValue(value) {
+            if (!value) return null;
+            const [y, m, d] = value.split('-').map(Number);
+            if (!y || !m || !d) return null;
+            const date = new Date(y, m - 1, d);
+            date.setHours(12, 0, 0, 0);
+            return date;
+        }
+
+        function getSelectedAttendanceDate() {
+            const parsed = parseDateInputValue(attendanceDateValue);
+            if (parsed) return parsed;
+            const now = new Date();
+            now.setHours(12, 0, 0, 0);
+            return now;
+        }
+
+        function getAttendanceContext() {
+            const date = getSelectedAttendanceDate();
+            const dayNum = date.getDay();
+            if (dayNum < 1 || dayNum > 5) {
+                return { valid: false, reason: 'weekend', date, week: detectWeekForDate(date), dayNum };
+            }
+            const week = detectWeekForDate(date);
+            return { valid: true, date, week, dayNum };
+        }
+
+        function getAttendanceMark(week, dayNum, classItem, targetDate = null) {
+            const effectiveDate = targetDate || getSelectedAttendanceDate();
+            const effectiveWeek = detectWeekForDate(effectiveDate);
+            const effectiveDay = effectiveDate.getDay();
+            const key = getAttendanceKey(effectiveWeek, effectiveDay, classItem.pair, classItem.name, toIsoDateLocal(effectiveDate));
             return attendanceState[key] || 'none';
         }
 
-        function setAttendanceMark(week, dayNum, classItem, mark) {
-            const key = getAttendanceKey(week, dayNum, classItem.pair, classItem.name);
+        function setAttendanceMark(week, dayNum, classItem, mark, targetDate = null) {
+            const effectiveDate = targetDate || getSelectedAttendanceDate();
+            const effectiveWeek = detectWeekForDate(effectiveDate);
+            const effectiveDay = effectiveDate.getDay();
+            const key = getAttendanceKey(effectiveWeek, effectiveDay, classItem.pair, classItem.name, toIsoDateLocal(effectiveDate));
             if (mark === 'none') {
                 delete attendanceState[key];
             } else {
@@ -1655,6 +1705,7 @@
             const today = getTodayDayIndex();
             const isCurrentWeek = (week === detectCurrentWeek());
             const visibleDays = getVisibleDaysForWeek(week);
+            const attendanceCtx = getAttendanceContext();
             let html = '';
 
             visibleDays.forEach((dayNum) => {
@@ -1715,10 +1766,11 @@
                         if (c.room) html += `<span class="class-room">${highlightMatch(c.room, searchQueryValue)}</span>`;
                         if (status.badgeText) html += `<span class="status-badge${status.badgeClass}">${status.badgeText}</span>`;
                         if (personalModeEnabled) {
-                            const mark = getAttendanceMark(week, dayNum, c);
+                            const canMark = attendanceCtx.valid && attendanceCtx.week === week && attendanceCtx.dayNum === dayNum;
+                            const mark = getAttendanceMark(week, dayNum, c, attendanceCtx.date);
                             html += `<span class="attendance-controls">`;
-                            html += `<button class="attendance-btn ${mark === 'present' ? 'active-present' : ''}" type="button" data-attendance="present" data-day="${dayNum}" data-pair="${c.pair}" data-name="${escapeHtml(c.name)}">Посещаю</button>`;
-                            html += `<button class="attendance-btn ${mark === 'missed' ? 'active-missed' : ''}" type="button" data-attendance="missed" data-day="${dayNum}" data-pair="${c.pair}" data-name="${escapeHtml(c.name)}">Пропускаю</button>`;
+                            html += `<button class="attendance-btn ${mark === 'present' ? 'active-present' : ''}" ${canMark ? '' : 'disabled'} type="button" data-attendance="present" data-day="${dayNum}" data-pair="${c.pair}" data-name="${escapeHtml(c.name)}">Посещаю</button>`;
+                            html += `<button class="attendance-btn ${mark === 'missed' ? 'active-missed' : ''}" ${canMark ? '' : 'disabled'} type="button" data-attendance="missed" data-day="${dayNum}" data-pair="${c.pair}" data-name="${escapeHtml(c.name)}">Пропускаю</button>`;
                             html += `</span>`;
                         }
                         html += `<button class="share-btn" type="button" data-share="class" data-day="${dayNum}" data-pair="${c.pair}">Поделиться</button>`;
@@ -1902,6 +1954,7 @@
         function renderStats() {
             const el = document.getElementById('statsBar');
             const visibleDays = getVisibleDaysForWeek(currentWeek);
+            const attendanceCtx = getAttendanceContext();
             let total = 0;
             let labs = 0;
             let lectures = 0;
@@ -1918,7 +1971,7 @@
                 labs += classes.filter(c => c.type === 'ЛАБ').length;
                 lectures += classes.filter(c => c.type === 'ЛЕК').length;
                 classes.forEach(c => {
-                    const mark = getAttendanceMark(currentWeek, dayNum, c);
+                    const mark = getAttendanceMark(currentWeek, dayNum, c, attendanceCtx.date);
                     if (mark === 'present') attended += 1;
                     if (mark === 'missed') missed += 1;
                 });
@@ -1937,6 +1990,7 @@
                 <div class="stats-chip">Самый загруженный: <strong>${maxDayLabel}</strong> (${maxDayCount})</div>
                 <div class="stats-chip">Посещаю: <strong>${attended}</strong> · Пропускаю: <strong>${missed}</strong></div>
                 <div class="stats-chip">Личная посещаемость: <strong>${attendanceRate}%</strong></div>
+                <div class="stats-chip">Учет за дату: <strong>${attendanceDateValue}</strong></div>
             `;
         }
 
@@ -1953,6 +2007,7 @@
             document.getElementById('searchInput').value = searchQueryValue;
             document.getElementById('notifLeadTime').value = String(notifLeadTimeMins);
             document.getElementById('themeSelect').value = activeTheme;
+            document.getElementById('attendanceDate').value = attendanceDateValue;
         }
 
         function applyViewRenders() {
@@ -2132,6 +2187,7 @@
             notifLeadTimeMins = 15;
             activeTheme = 'ocean';
             personalModeEnabled = false;
+            attendanceDateValue = toIsoDateLocal(new Date());
             attendanceState = {};
             collapsedDays.clear();
             localStorage.removeItem(STORAGE_COLLAPSED_DAYS_KEY);
@@ -2315,8 +2371,12 @@
                 if (!Number.isNaN(dayNum) && !Number.isNaN(pairNum) && (mark === 'present' || mark === 'missed')) {
                     const classItem = getClassesForDay(currentWeek, dayNum).find(c => c.pair === pairNum);
                     if (classItem) {
-                        const prev = getAttendanceMark(currentWeek, dayNum, classItem);
-                        setAttendanceMark(currentWeek, dayNum, classItem, prev === mark ? 'none' : mark);
+                        const attendanceCtx = getAttendanceContext();
+                        if (!attendanceCtx.valid || attendanceCtx.week !== currentWeek || attendanceCtx.dayNum !== dayNum) {
+                            return;
+                        }
+                        const prev = getAttendanceMark(currentWeek, dayNum, classItem, attendanceCtx.date);
+                        setAttendanceMark(currentWeek, dayNum, classItem, prev === mark ? 'none' : mark, attendanceCtx.date);
                     }
                 }
                 return;
@@ -2392,6 +2452,15 @@
             if (![5, 10, 15, 30].includes(mins)) return;
             notifLeadTimeMins = mins;
             savePanelState();
+        });
+
+        document.getElementById('attendanceDate').addEventListener('change', (event) => {
+            const value = event.target.value;
+            if (!parseDateInputValue(value)) return;
+            attendanceDateValue = value;
+            savePanelState();
+            renderSchedule(currentWeek);
+            renderStats();
         });
 
         document.getElementById('exportTodayBtn').addEventListener('click', exportTodayICS);
