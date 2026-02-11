@@ -12,6 +12,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="inter.css">
     <style>
         :root {
             --bg-primary: #0f0f1a;
@@ -47,7 +48,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
@@ -173,7 +174,7 @@
             padding: 10px 20px;
             border: none;
             border-radius: 11px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
@@ -216,6 +217,63 @@
 
         .time-chip .icon {
             font-size: 14px;
+        }
+
+        .next-class {
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(37, 99, 235, 0.16));
+            border: 1px solid rgba(124, 58, 237, 0.28);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+        }
+
+        .next-class-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .next-class-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: rgba(232, 232, 240, 0.85);
+        }
+
+        .next-class-timer {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(15, 15, 26, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .next-class-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.35;
+            margin-bottom: 6px;
+        }
+
+        .next-class-meta {
+            font-size: 13px;
+            color: rgba(232, 232, 240, 0.9);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .next-class-muted {
+            font-size: 13px;
+            color: rgba(232, 232, 240, 0.8);
         }
 
         /* Schedule grid */
@@ -598,6 +656,23 @@
                 gap: 8px;
             }
 
+            .next-class {
+                padding: 14px;
+            }
+
+            .next-class-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .next-class-timer {
+                font-size: 14px;
+            }
+
+            .next-class-name {
+                font-size: 15px;
+            }
+
             .legend-grid {
                 grid-template-columns: 1fr;
             }
@@ -696,11 +771,13 @@
         </header>
 
         <div class="week-toggle">
-            <button class="week-btn active" data-week="1" onclick="switchWeek(1)">1 нед. (нечётная)</button>
-            <button class="week-btn" data-week="2" onclick="switchWeek(2)">2 нед. (чётная)</button>
+            <button class="week-btn active" data-week="1" type="button">1 нед. (нечётная)</button>
+            <button class="week-btn" data-week="2" type="button">2 нед. (чётная)</button>
         </div>
 
         <div class="time-info" id="currentInfo"></div>
+
+        <div class="next-class" id="nextClassCard"></div>
 
         <div class="schedule" id="schedule"></div>
 
@@ -741,7 +818,9 @@
         ];
 
         const DAYS = ['ПОНЕДЕЛЬНИК', 'ВТОРНИК', 'СРЕДА', 'ЧЕТВЕРГ', 'ПЯТНИЦА'];
-        const DAY_INDEX_MAP = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4 }; // Mon=1
+        const DAY_LABELS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'];
+        const STORAGE_WEEK_KEY = 'schedule:selectedWeek';
+        const STORAGE_COLLAPSED_DAYS_KEY = 'schedule:collapsedDays';
 
         const SUBJECT_COLORS = {
             'Разработка мобильных приложений': '#7c3aed',
@@ -822,20 +901,47 @@
         // Week 25 (Feb 16-22) = нечётная = 1 неделя
         const SEMESTER_START = new Date(2026, 1, 9); // Feb 9, 2026
 
-        function detectCurrentWeek() {
-            const now = new Date();
-            const diffMs = now - SEMESTER_START;
+        function detectWeekForDate(date) {
+            const diffMs = date - SEMESTER_START;
             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            if (diffDays < 0) return 2;
             const weekOffset = Math.floor(diffDays / 7);
-            // Even offset = чётная = 2 неделя, Odd offset = нечётная = 1 неделя
             return (weekOffset % 2 === 0) ? 2 : 1;
+        }
+
+        function detectCurrentWeek() {
+            return detectWeekForDate(new Date());
         }
 
         function getWeekLabel(week) {
             return week === 1 ? 'нечётная' : 'чётная';
         }
 
-        let currentWeek = detectCurrentWeek();
+        function getSavedWeek() {
+            const raw = localStorage.getItem(STORAGE_WEEK_KEY);
+            const parsed = Number.parseInt(raw, 10);
+            return (parsed === 1 || parsed === 2) ? parsed : null;
+        }
+
+        function getSavedCollapsedDays() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(STORAGE_COLLAPSED_DAYS_KEY) || '[]');
+                if (!Array.isArray(parsed)) return new Set();
+                const valid = parsed
+                    .map(v => Number.parseInt(v, 10))
+                    .filter(v => v >= 1 && v <= 5);
+                return new Set(valid);
+            } catch {
+                return new Set();
+            }
+        }
+
+        function saveCollapsedDays() {
+            localStorage.setItem(STORAGE_COLLAPSED_DAYS_KEY, JSON.stringify(Array.from(collapsedDays)));
+        }
+
+        let currentWeek = getSavedWeek() || detectCurrentWeek();
+        const collapsedDays = getSavedCollapsedDays();
 
         function getTypeClass(type) {
             if (!type) return '';
@@ -865,8 +971,10 @@
                 const classes = isPractice ? [] : (data || []);
                 const classCount = isPractice ? 0 : classes.length;
 
-                html += `<div class="day-card${isToday ? ' today' : ''}" id="day-${dayNum}">`;
-                html += `<div class="day-header" onclick="toggleDay(${dayNum})">`;
+                const isCollapsed = collapsedDays.has(dayNum);
+
+                html += `<div class="day-card${isToday ? ' today' : ''}${isCollapsed ? ' collapsed' : ''}" id="day-${dayNum}">`;
+                html += `<div class="day-header" data-day="${dayNum}" role="button" tabindex="0" aria-expanded="${isCollapsed ? 'false' : 'true'}" aria-controls="day-body-${dayNum}">`;
                 html += `<div class="day-header-left">`;
                 html += `<span class="day-name">${dayName}</span>`;
                 if (isToday) html += `<span class="today-badge">Сегодня</span>`;
@@ -882,7 +990,7 @@
                 html += `<span class="day-expand-icon">▾</span>`;
                 html += `</div></div>`;
 
-                html += `<div class="day-body">`;
+                html += `<div class="day-body" id="day-body-${dayNum}">`;
 
                 if (isPractice) {
                     html += `<div class="practice-banner">
@@ -929,6 +1037,7 @@
         function switchWeek(week) {
             if (week === currentWeek) return;
             currentWeek = week;
+            localStorage.setItem(STORAGE_WEEK_KEY, String(week));
 
             document.querySelectorAll('.week-btn').forEach(btn => {
                 btn.classList.toggle('active', parseInt(btn.dataset.week) === week);
@@ -947,7 +1056,129 @@
 
         function toggleDay(dayNum) {
             const card = document.getElementById(`day-${dayNum}`);
+            if (!card) return;
             card.classList.toggle('collapsed');
+            if (card.classList.contains('collapsed')) {
+                collapsedDays.add(dayNum);
+            } else {
+                collapsedDays.delete(dayNum);
+            }
+            saveCollapsedDays();
+            const header = card.querySelector('.day-header');
+            if (header) {
+                const expanded = !card.classList.contains('collapsed');
+                header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            }
+        }
+
+        function formatDuration(ms) {
+            if (ms <= 0) return '00:00:00';
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+            const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function pairDateParts(baseDate, pairNum) {
+            const slot = TIME_SLOTS[pairNum - 1];
+            if (!slot) return null;
+            const [sh, sm] = slot.start.split(':').map(Number);
+            const [eh, em] = slot.end.split(':').map(Number);
+            const start = new Date(baseDate);
+            start.setHours(sh, sm, 0, 0);
+            const end = new Date(baseDate);
+            end.setHours(eh, em, 0, 0);
+            return { slot, start, end };
+        }
+
+        function buildUpcomingCandidates(fromDate) {
+            const result = [];
+            for (let offset = 0; offset < 14; offset += 1) {
+                const date = new Date(fromDate);
+                date.setHours(0, 0, 0, 0);
+                date.setDate(date.getDate() + offset);
+                const day = date.getDay();
+                if (day < 1 || day > 5) continue;
+
+                const week = detectWeekForDate(date);
+                const dayName = DAYS[day - 1];
+                const data = scheduleData[week][dayName];
+                if (!data || data === 'practice') continue;
+
+                data.forEach(cls => {
+                    const parts = pairDateParts(date, cls.pair);
+                    if (!parts) return;
+                    result.push({
+                        ...cls,
+                        week,
+                        day,
+                        dayName,
+                        dayLabel: DAY_LABELS[day - 1],
+                        slot: parts.slot,
+                        start: parts.start,
+                        end: parts.end,
+                    });
+                });
+            }
+            return result.sort((a, b) => a.start - b.start);
+        }
+
+        function getUpcomingClassInfo(now) {
+            const candidates = buildUpcomingCandidates(now);
+            for (const cls of candidates) {
+                if (now >= cls.start && now <= cls.end) {
+                    return {
+                        mode: 'ongoing',
+                        classInfo: cls,
+                        countdownText: `До конца ${formatDuration(cls.end - now)}`,
+                    };
+                }
+                if (cls.start > now) {
+                    return {
+                        mode: 'next',
+                        classInfo: cls,
+                        countdownText: `До начала ${formatDuration(cls.start - now)}`,
+                    };
+                }
+            }
+            return null;
+        }
+
+        function renderNextClassCard() {
+            const el = document.getElementById('nextClassCard');
+            const now = new Date();
+            const upcoming = getUpcomingClassInfo(now);
+
+            if (!upcoming) {
+                el.innerHTML = `
+                    <div class="next-class-head">
+                        <span class="next-class-label">Ближайшая пара</span>
+                        <span class="next-class-timer">--:--:--</span>
+                    </div>
+                    <div class="next-class-muted">В ближайшие 2 недели пар по расписанию не найдено.</div>
+                `;
+                return;
+            }
+
+            const c = upcoming.classInfo;
+            const headline = upcoming.mode === 'ongoing' ? 'Сейчас идет пара' : 'Ближайшая пара';
+            const typeLabel = c.type ? `${c.type} · ` : '';
+            const teacherLabel = c.teacher ? ` · ${c.teacher}` : '';
+            const roomLabel = c.room ? ` · ауд. ${c.room}` : '';
+
+            el.innerHTML = `
+                <div class="next-class-head">
+                    <span class="next-class-label">${headline}</span>
+                    <span class="next-class-timer">${upcoming.countdownText}</span>
+                </div>
+                <div class="next-class-name">${c.name}</div>
+                <div class="next-class-meta">
+                    <span>📅 ${c.dayLabel}, ${c.slot.start} - ${c.slot.end}</span>
+                    <span>•</span>
+                    <span>${typeLabel}${c.pair}-я пара${teacherLabel}${roomLabel}</span>
+                </div>
+            `;
         }
 
         function renderTimeGrid() {
@@ -973,6 +1204,11 @@
             // Week indicator
             const detectedWeek = detectCurrentWeek();
             const weekLabel = getWeekLabel(detectedWeek);
+            const notifSupported = ('Notification' in window);
+            const notifGranted = notifSupported && Notification.permission === 'granted';
+            const notifLabel = !notifSupported
+                ? '🔕 Не поддерживается'
+                : (notifGranted ? '🔔 Уведомления вкл' : '🔕 Уведомления выкл');
 
             // Find current/next pair (only for today's actual schedule)
             let pairInfo = '';
@@ -1013,6 +1249,7 @@
                 <div class="time-chip"><span class="icon">📅</span> ${dayStr}, ${dateStr}</div>
                 <div class="time-chip"><span class="icon">🕐</span> ${timeStr}</div>
                 <div class="time-chip"><span class="icon">📆</span> ${detectedWeek} нед. (${weekLabel})</div>
+                <div class="time-chip"><span class="notif-status ${notifGranted ? 'on' : 'off'}" id="notifStatusChip">${notifLabel}</span></div>
                 ${pairInfo ? `<div class="time-chip"><span class="icon">📚</span> ${pairInfo}</div>` : ''}
                 ${weekendMsg ? `<div class="time-chip"><span class="icon">😴</span> Выходной</div>` : ''}
             `;
@@ -1029,15 +1266,19 @@
         }
 
         function showNotifBanner() {
+            if (document.querySelector('.notif-banner')) return;
             const banner = document.createElement('div');
             banner.className = 'notif-banner';
             banner.innerHTML = `
                 <span>🔔</span>
                 <span>Включить уведомления за 15 мин до пары?</span>
-                <button class="close-btn" onclick="this.parentElement.remove()">✕</button>
+                <button class="close-btn" type="button" aria-label="Закрыть">✕</button>
             `;
             banner.addEventListener('click', async (e) => {
-                if (e.target.classList.contains('close-btn')) return;
+                if (e.target.classList.contains('close-btn')) {
+                    banner.remove();
+                    return;
+                }
                 const perm = await Notification.requestPermission();
                 banner.remove();
                 if (perm === 'granted') {
@@ -1096,12 +1337,38 @@
         }
 
         // === INIT ===
+        document.querySelector('.week-toggle').addEventListener('click', (event) => {
+            const button = event.target.closest('.week-btn');
+            if (!button) return;
+            const week = parseInt(button.dataset.week, 10);
+            if (!Number.isNaN(week)) switchWeek(week);
+        });
+
+        document.getElementById('schedule').addEventListener('click', (event) => {
+            const header = event.target.closest('.day-header');
+            if (!header) return;
+            const dayNum = parseInt(header.dataset.day, 10);
+            if (!Number.isNaN(dayNum)) toggleDay(dayNum);
+        });
+
+        document.getElementById('schedule').addEventListener('keydown', (event) => {
+            const header = event.target.closest('.day-header');
+            if (!header) return;
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            const dayNum = parseInt(header.dataset.day, 10);
+            if (!Number.isNaN(dayNum)) toggleDay(dayNum);
+        });
+
         // Auto-select detected week
-        switchWeek(currentWeek);
         renderSchedule(currentWeek);
         renderTimeGrid();
         updateCurrentInfo();
-        setInterval(updateCurrentInfo, 1000); // Update every second
+        renderNextClassCard();
+        setInterval(() => {
+            updateCurrentInfo();
+            renderNextClassCard();
+        }, 1000); // Update every second
 
         // Set active week button on load
         document.querySelectorAll('.week-btn').forEach(btn => {
